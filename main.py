@@ -4,7 +4,6 @@ import time
 from selenium.webdriver.common.action_chains import ActionChains
 import re
 import mysql.connector
-import pandas as pd
 
 details = {
     "Business Name": [],
@@ -17,12 +16,11 @@ details = {
 }
 
 browser = webdriver.Chrome()
-browser.get('https://www.google.com/maps/search/dentist+near+me/@30.729903,76.7682662,15z/data=!3m1!4b1?entry=ttu')
+browser.get('https://www.google.com/maps/search/dentist+near+me/@28.9925063,76.9931886,14z/data=!3m1!4b1?entry=ttu')
 time.sleep(2)
 
 shop_element = browser.find_elements(By.XPATH, "//a[contains(@class, 'hfpxzc')]")
 saturation = True
-ref = 0
 
 while saturation:
     current_length = len(shop_element)
@@ -52,7 +50,7 @@ def shop_url(f_element=shop_element):
         shopurl.append(element.get_attribute('href'))
     return shopurl
 
-def extractor():
+def extractor(browser):
     # shop name
     try:
         business_name = browser.find_element(By.XPATH, "//h1[contains(@class, 'DUwDvf')]").text
@@ -79,7 +77,7 @@ def extractor():
         category = "N/A"
 
     # regex
-    add_num_web_element = browser.find_elements(By.XPATH, "//div[contains(@class, 'rogA2c')]")
+    add_num_web_element = browser.find_elements(By.XPATH, "//div-[contains(@class, 'rogA2c')]")
     phone_pattern_regex = r'\b(?:\+?\d{1,3})?[-.\s]??(?:\d{10}|\d{5}[-.\s]?\d{5})\b'
     website_pattern_regex = r'\b(?!facebook\.com\b)(?!instagram\.com\b)(?!swiggy\.com\b)(?!zomato\.com\b)([a-zA-Z0-9.-]+\.[a-zA-Z]{2,7})\b'
     complete_string = ""
@@ -108,8 +106,7 @@ def extractor():
 def visit_url(f_shopurl=shop_url()):
     for url in f_shopurl:
         browser.get(url)
-        detail = extractor()
-        # print(detail)
+        detail = extractor(browser)
         details["Business Name"].append(detail[0])
         details["Address"].append(detail[1])
         details["Category"].append(detail[2])
@@ -120,30 +117,27 @@ def visit_url(f_shopurl=shop_url()):
 
 visit_url()
 
-df = pd.DataFrame(details)
-print(df)
-
 # MySQL database connection
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
     password="root",
-    database="business_data"
+    database="business_data",
+    
 )
 cursor = conn.cursor()
- 
 
 # Insert data into MySQL
-for i in range(len(df)):
+for i in range(len(details["Business Name"])):
     sql = "INSERT INTO businesses (business_name, address, category, review_average, review_count, website, phone_number) VALUES (%s, %s, %s, %s, %s, %s, %s)"
     val = (
-        df.loc[i, "Business Name"],
-        df.loc[i, "Address"],
-        df.loc[i, "Category"],
-        df.loc[i, "Review Average"],
-        df.loc[i, "Review Count"],
-        df.loc[i, "Website"],
-        df.loc[i, "Phone Number"]
+        details["Business Name"][i],
+        details["Address"][i],
+        details["Category"][i],
+        details["Review Average"][i],
+        details["Review Count"][i],
+        details["Website"][i],
+        details["Phone Number"][i]
     )
     cursor.execute(sql, val)
 
