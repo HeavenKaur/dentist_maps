@@ -119,9 +119,9 @@ visit_url()
 
 # MySQL database connection
 conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="root",
+    host="your_host",
+    user="your_username",
+    password="your_pass",
     database="business_data",
     
 )
@@ -142,6 +142,7 @@ for i in range(len(details["Business Name"])):
     cursor.execute(sql, val)
 
 conn.commit()
+print(" successful..")
 cursor.close()
 conn.close()
 
