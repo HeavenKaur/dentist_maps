@@ -60,8 +60,6 @@ conn = mysql.connector.connect(
 
 4. Run the Script:
 
-Open a terminal and navigate to the project directory.
-Run the script:
 python main.py
 
 ### Script Details
